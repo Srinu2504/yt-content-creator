@@ -6,13 +6,23 @@ from app.core.config import AUDIO_DIR, MAX_VIDEO_DURATION_MINUTES
 
 
 def _get_cookies_file():
-    cookies_content = os.environ.get("YOUTUBE_COOKIES", "")
+    cookies_content = os.environ.get("YOUTUBE_COOKIES", "").strip()
     if not cookies_content:
         return None
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
-    tmp.write(cookies_content)
-    tmp.close()
-    return tmp.name
+    try:
+        tmp = tempfile.NamedTemporaryFile(
+            mode='w',
+            suffix='.txt',
+            delete=False,
+            encoding='utf-8'
+        )
+        tmp.write(cookies_content)
+        tmp.flush()
+        tmp.close()
+        return tmp.name
+    except Exception as e:
+        print(f"Cookie file creation failed: {e}")
+        return None
 
 
 class DownloadError(Exception):
@@ -48,6 +58,9 @@ def get_video_info(url):
             }
         except Exception as e:
             raise DownloadError(f"Could not fetch video info: {e}")
+        finally:
+            if cookies_file and os.path.exists(cookies_file):
+                os.remove(cookies_file)
 
 
 def download_audio(url, video_id, progress_callback=None):
