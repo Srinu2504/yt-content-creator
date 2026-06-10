@@ -78,6 +78,9 @@ def download_audio(url, video_id, progress_callback=None):
         "quiet": True,
         "no_warnings": True,
         "progress_hooks": [_progress_hook],
+        "extractor_args": {"youtube": {"skip": ["dash", "hls"]}},
+        "ignoreerrors": False,
+        "format_sort": ["abr", "asr"],
     }
     cookies_file = _get_cookies_file()
     if cookies_file:
