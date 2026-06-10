@@ -80,8 +80,10 @@ def download_audio(url, video_id, progress_callback=None):
             pct = d.get("_percent_str", "...").strip()
             progress_callback(f"Downloading audio: {pct}")
 
+    cookies_file = _get_cookies_file()
+
     opts = {
-        "format": "worstaudio/bestaudio/best",
+        "format": "bestaudio/best",
         "outtmpl": os.path.join(AUDIO_DIR, f"{video_id}.%(ext)s"),
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
@@ -91,8 +93,10 @@ def download_audio(url, video_id, progress_callback=None):
         "quiet": True,
         "no_warnings": True,
         "progress_hooks": [_progress_hook],
+        "format_sort": ["abr", "asr"],
+        "prefer_free_formats": True,
     }
-    cookies_file = _get_cookies_file()
+
     if cookies_file:
         opts["cookiefile"] = cookies_file
 
@@ -101,6 +105,9 @@ def download_audio(url, video_id, progress_callback=None):
             ydl.download([url])
         except Exception as e:
             raise DownloadError(f"Download failed: {e}")
+        finally:
+            if cookies_file and os.path.exists(cookies_file):
+                os.remove(cookies_file)
 
     if not os.path.exists(out_path):
         raise DownloadError("Audio file not found after download.")
