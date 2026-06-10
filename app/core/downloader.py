@@ -68,19 +68,16 @@ def download_audio(url, video_id, progress_callback=None):
             progress_callback(f"Downloading audio: {pct}")
 
     opts = {
-        "format": "bestaudio/best",
+        "format": "worstaudio/bestaudio/best",
         "outtmpl": os.path.join(AUDIO_DIR, f"{video_id}.%(ext)s"),
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
-            "preferredquality": "128",
+            "preferredquality": "64",
         }],
         "quiet": True,
         "no_warnings": True,
         "progress_hooks": [_progress_hook],
-        "extractor_args": {"youtube": {"skip": ["dash", "hls"]}},
-        "ignoreerrors": False,
-        "format_sort": ["abr", "asr"],
     }
     cookies_file = _get_cookies_file()
     if cookies_file:
