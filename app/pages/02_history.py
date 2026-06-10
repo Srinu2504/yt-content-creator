@@ -19,7 +19,8 @@ st.divider()
 
 for video in videos:
     vid = dict(video)
-    with st.expander(f"**{vid['title']}** — {vid['channel']} · {vid['duration_sec']//60} min"):
+        duration_min = (vid['duration_sec'] or 0) // 60
+        with st.expander(f"**{vid['title']}** — {vid['channel']} · {duration_min} min"):
         st.caption(f"URL: {vid['youtube_url']}")
         st.caption(f"Transcribed: {vid['created_at'][:10]}")
 
@@ -54,21 +55,31 @@ for video in videos:
                             key=f"h_txt_{vid['id']}_{fmt_key}",
                             use_container_width=True)
                     with c2:
-                        st.download_button("⬇ PDF",
-                            export_pdf(item["content"],
-                                       fmt_labels.get(fmt_key, fmt_key)),
-                            file_name=f"{fname}.pdf",
-                            mime="application/pdf",
-                            key=f"h_pdf_{vid['id']}_{fmt_key}",
-                            use_container_width=True)
+                        try:
+                            st.download_button("⬇ PDF",
+                                export_pdf(item["content"],
+                                           fmt_labels.get(fmt_key, fmt_key)),
+                                file_name=f"{fname}.pdf",
+                                mime="application/pdf",
+                                key=f"h_pdf_{vid['id']}_{fmt_key}",
+                                use_container_width=True)
+                        except Exception:
+                            st.button("PDF N/A", disabled=True,
+                                      use_container_width=True,
+                                      key=f"h_pdf_{vid['id']}_{fmt_key}")
                     with c3:
-                        st.download_button("⬇ DOCX",
-                            export_docx(item["content"],
-                                        fmt_labels.get(fmt_key, fmt_key)),
-                            file_name=f"{fname}.docx",
-                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                            key=f"h_docx_{vid['id']}_{fmt_key}",
-                            use_container_width=True)
+                        try:
+                            st.download_button("⬇ DOCX",
+                                export_docx(item["content"],
+                                            fmt_labels.get(fmt_key, fmt_key)),
+                                file_name=f"{fname}.docx",
+                                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                key=f"h_docx_{vid['id']}_{fmt_key}",
+                                use_container_width=True)
+                        except Exception:
+                            st.button("DOCX N/A", disabled=True,
+                                      use_container_width=True,
+                                      key=f"h_docx_{vid['id']}_{fmt_key}")
         else:
             st.info("No content generated yet for this video.")
 

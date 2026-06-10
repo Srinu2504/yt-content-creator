@@ -25,7 +25,7 @@ def init_db():
 
             CREATE TABLE IF NOT EXISTS generated_content (
                 id          TEXT PRIMARY KEY,
-                video_id    TEXT NOT NULL REFERENCES videos(id),
+                video_id    TEXT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
                 format      TEXT NOT NULL,
                 content     TEXT NOT NULL,
                 word_count  INTEGER,
@@ -35,14 +35,28 @@ def init_db():
 
 
 def save_video(youtube_url, youtube_id, title, channel, duration_sec, transcript):
-    vid_id = str(uuid.uuid4())
     with get_conn() as conn:
-        conn.execute(
-            """INSERT OR REPLACE INTO videos
-               (id, youtube_url, youtube_id, title, channel, duration_sec, transcript)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (vid_id, youtube_url, youtube_id, title, channel, duration_sec, transcript)
-        )
+        # Check if video already exists — reuse same id
+        existing = conn.execute(
+            "SELECT id FROM videos WHERE youtube_url = ?", (youtube_url,)
+        ).fetchone()
+
+        if existing:
+            vid_id = existing["id"]
+            conn.execute(
+                """UPDATE videos SET
+                   youtube_id=?, title=?, channel=?, duration_sec=?, transcript=?
+                   WHERE id=?""",
+                (youtube_id, title, channel, duration_sec, transcript, vid_id)
+            )
+        else:
+            vid_id = str(uuid.uuid4())
+            conn.execute(
+                """INSERT INTO videos
+                   (id, youtube_url, youtube_id, title, channel, duration_sec, transcript)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (vid_id, youtube_url, youtube_id, title, channel, duration_sec, transcript)
+            )
     return vid_id
 
 
@@ -64,6 +78,11 @@ def save_content(video_id, fmt, content):
     content_id = str(uuid.uuid4())
     word_count = len(content.split())
     with get_conn() as conn:
+        # Delete old entry for same format to avoid duplicates
+        conn.execute(
+            "DELETE FROM generated_content WHERE video_id=? AND format=?",
+            (video_id, fmt)
+        )
         conn.execute(
             """INSERT INTO generated_content (id, video_id, format, content, word_count)
                VALUES (?, ?, ?, ?, ?)""",
@@ -79,7 +98,13 @@ def get_content_for_video(video_id):
                WHERE video_id = ? ORDER BY created_at DESC""",
             (video_id,)
         ).fetchall()
-    return {row["format"]: dict(row) for row in rows}
+    # Keep newest entry per format
+    seen = {}
+    for row in rows:
+        fmt = row["format"]
+        if fmt not in seen:
+            seen[fmt] = dict(row)
+    return seen
 
 
 def delete_video(video_id):

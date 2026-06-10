@@ -96,11 +96,15 @@ if run_btn:
     cached = get_video_by_url(url)
 
     if cached:
-        st.info(f"Loaded from cache: **{cached['title']}**")
-        transcript = cached["transcript"]
-        video_id = cached["id"]
-        title = cached["title"]
-    else:
+        transcript = cached["transcript"] or ""
+        if not transcript:
+            st.warning("Cached video has no transcript. Re-processing...")
+        else:
+            st.info(f"Loaded from cache: **{cached['title']}**")
+            video_id = cached["id"]
+            title = cached["title"]
+
+    if not cached or not (cached["transcript"] or ""):
         status = st.status("Starting pipeline...", expanded=True)
         try:
             yt_id = extract_youtube_id(url)
@@ -144,9 +148,11 @@ if run_btn:
     # ── Show transcript ───────────────────────────────────────────────────────
     st.subheader("📝 Transcript")
     with st.expander("View full transcript", expanded=False):
-        st.markdown(
-            f'<div class="transcript-box">{transcript}</div>',
-            unsafe_allow_html=True
+        st.text_area(
+            "Transcript text",
+            transcript,
+            height=300,
+            label_visibility="collapsed"
         )
         st.caption(f"Words: {len(transcript.split())}  ·  Characters: {len(transcript)}")
         st.download_button(
@@ -232,4 +238,7 @@ if run_btn:
                               use_container_width=True, key=f"docx_{fmt_key}")
             with c4:
                 if st.button("📋 Copy", use_container_width=True, key=f"copy_{fmt_key}"):
-                    st.code(content, language=None)
+                    st.session_state[f"show_copy_{fmt_key}"] = True
+            if st.session_state.get(f"show_copy_{fmt_key}"):
+                st.code(content, language=None)
+                st.caption("Select all text above and copy manually (Ctrl+A, Ctrl+C)")
