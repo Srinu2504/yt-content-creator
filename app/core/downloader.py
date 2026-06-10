@@ -83,7 +83,7 @@ def download_audio(url, video_id, progress_callback=None):
     cookies_file = _get_cookies_file()
 
     opts = {
-        "format": "bestaudio/best",
+        "format": "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best",
         "outtmpl": os.path.join(AUDIO_DIR, f"{video_id}.%(ext)s"),
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
