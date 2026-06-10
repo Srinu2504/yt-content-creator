@@ -23,15 +23,10 @@ with st.sidebar:
     st.title("🎬 YT Content Creator")
     st.caption("Turn any YouTube video into polished content — free.")
     st.divider()
-    api_key_input = st.text_input(
-        "Groq API Key",
-        value=GROQ_API_KEY,
-        type="password",
-        help="Get a free key at console.groq.com",
-        placeholder="gsk_...",
-    )
-    if api_key_input:
-        os.environ["GROQ_API_KEY"] = api_key_input
+    if GROQ_API_KEY:
+        st.success("API Key loaded ✅", icon="🔐")
+    else:
+        st.error("GROQ_API_KEY not set in environment")
     st.divider()
     st.page_link("main.py", label="New Video", icon="➕")
     st.page_link("pages/02_history.py", label="Past Videos", icon="📚")
@@ -104,6 +99,21 @@ if run_btn:
                 os.remove(audio_path)
 
             status.update(label="✅ Transcription complete!", state="complete")
+
+            st.subheader("📝 Transcript")
+            with st.expander("View full transcript", expanded=False):
+                st.text_area("Transcript", transcript, height=300,
+                             label_visibility="collapsed")
+                st.caption(f"Words: {len(transcript.split())} · Characters: {len(transcript)}")
+                st.download_button(
+                    "⬇ Download Transcript (TXT)",
+                    transcript.encode("utf-8"),
+                    file_name=f"{title}_transcript.txt",
+                    mime="text/plain",
+                    key="transcript_download"
+                )
+
+            st.divider()
 
         except DownloadError as e:
             st.error(f"Download failed: {e}")
