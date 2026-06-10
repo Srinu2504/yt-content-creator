@@ -19,8 +19,8 @@ st.divider()
 
 for video in videos:
     vid = dict(video)
-        duration_min = (vid['duration_sec'] or 0) // 60
-        with st.expander(f"**{vid['title']}** — {vid['channel']} · {duration_min} min"):
+    duration_min = (vid['duration_sec'] or 0) // 60
+    with st.expander(f"**{vid['title']}** — {vid['channel']} · {duration_min} min"):
         st.caption(f"URL: {vid['youtube_url']}")
         st.caption(f"Transcribed: {vid['created_at'][:10]}")
 
