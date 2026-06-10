@@ -1,7 +1,18 @@
 import os
 import re
+import tempfile
 import yt_dlp
 from app.core.config import AUDIO_DIR, MAX_VIDEO_DURATION_MINUTES
+
+
+def _get_cookies_file():
+    cookies_content = os.environ.get("YOUTUBE_COOKIES", "")
+    if not cookies_content:
+        return None
+    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+    tmp.write(cookies_content)
+    tmp.close()
+    return tmp.name
 
 
 class DownloadError(Exception):
@@ -18,7 +29,14 @@ def extract_youtube_id(url):
 
 
 def get_video_info(url):
-    opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    cookies_file = _get_cookies_file()
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+    }
+    if cookies_file:
+        opts["cookiefile"] = cookies_file
     with yt_dlp.YoutubeDL(opts) as ydl:
         try:
             info = ydl.extract_info(url, download=False)
@@ -61,6 +79,9 @@ def download_audio(url, video_id, progress_callback=None):
         "no_warnings": True,
         "progress_hooks": [_progress_hook],
     }
+    cookies_file = _get_cookies_file()
+    if cookies_file:
+        opts["cookiefile"] = cookies_file
 
     with yt_dlp.YoutubeDL(opts) as ydl:
         try:
