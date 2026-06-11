@@ -340,7 +340,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 ## 👤 Author
 
 **Your Name**  
-GitHub: [@yourusername](https://github.com/yourusername)
+GitHub: [@Srinu2504](https://github.com/Srinu2504)
 
 ---
 
