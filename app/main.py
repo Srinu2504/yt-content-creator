@@ -92,7 +92,15 @@ if run_btn:
         st.error("Select at least one content format.")
         st.stop()
 
-    url = url_input.strip()
+    raw_url = url_input.strip()
+    try:
+        yt_id_check = extract_youtube_id(raw_url)
+        url = f"https://www.youtube.com/watch?v={yt_id_check}"
+    except Exception:
+        url = raw_url
+    video_id = None
+    title = ""
+    transcript = ""
     cached = get_video_by_url(url)
 
     if cached:
@@ -115,7 +123,8 @@ if run_btn:
             # Step 1 — Download
             status.update(label="⬇️ Downloading audio...")
             audio_path, info = download_audio(url, yt_id, progress_callback=update_status)
-            status.write(f"✅ Downloaded: **{info['title']}** ({info['duration_sec']//60} min)")
+            duration_min = (info.get('duration_sec') or 0) // 60
+            status.write(f"✅ Downloaded: **{info['title']}** ({duration_min} min)")
 
             # Step 2 — Transcribe
             status.update(label="🎙️ Transcribing with Groq Whisper...")

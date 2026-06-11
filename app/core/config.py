@@ -5,7 +5,10 @@ load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 APP_TITLE = os.getenv("APP_TITLE", "YT Content Creator")
-MAX_VIDEO_DURATION_MINUTES = int(os.getenv("MAX_VIDEO_DURATION_MINUTES", "60"))
+try:
+    MAX_VIDEO_DURATION_MINUTES = int(os.getenv("MAX_VIDEO_DURATION_MINUTES", "60"))
+except (ValueError, TypeError):
+    MAX_VIDEO_DURATION_MINUTES = 60
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "whisper-large-v3-turbo")
 LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 

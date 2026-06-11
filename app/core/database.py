@@ -31,6 +31,9 @@ def init_db():
                 word_count  INTEGER,
                 created_at  TEXT DEFAULT (datetime('now'))
             );
+
+            CREATE INDEX IF NOT EXISTS idx_content_video_id
+            ON generated_content(video_id);
         """)
 
 
@@ -109,5 +112,4 @@ def get_content_for_video(video_id):
 
 def delete_video(video_id):
     with get_conn() as conn:
-        conn.execute("DELETE FROM generated_content WHERE video_id = ?", (video_id,))
         conn.execute("DELETE FROM videos WHERE id = ?", (video_id,))

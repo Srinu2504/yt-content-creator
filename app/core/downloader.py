@@ -71,7 +71,7 @@ def get_video_info(url):
                 "id": info.get("id"),
                 "title": info.get("title", "Unknown"),
                 "channel": info.get("uploader", "Unknown"),
-                "duration_sec": info.get("duration", 0),
+                "duration_sec": info.get("duration") or 0,
             }
     except Exception as e:
         raise DownloadError(f"Could not fetch video info: {e}")
@@ -136,8 +136,9 @@ def download_audio(url, video_id, progress_callback=None):
             last_error = str(e)
             if "Sign in" in str(e) or "bot" in str(e).lower():
                 raise DownloadError(
-                    f"YouTube blocked the request. "
-                    f"Please upload fresh cookies.txt in the sidebar."
+                    f"YouTube blocked this request as a bot. "
+                    f"Fix: Go to Railway → Variables → update YOUTUBE_COOKIES "
+                    f"with fresh cookies exported from Chrome on youtube.com"
                 )
             continue
         finally:

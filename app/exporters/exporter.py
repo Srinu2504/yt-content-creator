@@ -11,7 +11,6 @@ def export_pdf(content, title):
     from reportlab.lib.units import cm
     from reportlab.lib import colors
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-    from reportlab.lib.enums import TA_JUSTIFY
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4,
@@ -34,11 +33,14 @@ def export_pdf(content, title):
         if not line:
             story.append(Spacer(1, 0.2*cm))
         elif line.startswith("## "):
-            story.append(Paragraph(line[3:], heading_style))
+            safe_h = line[3:].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+            story.append(Paragraph(safe_h, heading_style))
         elif line.startswith("# "):
-            story.append(Paragraph(line[2:], title_style))
+            safe_h = line[2:].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+            story.append(Paragraph(safe_h, title_style))
         elif line.startswith("- ") or line.startswith("* "):
-            story.append(Paragraph(f"• {line[2:]}", body_style))
+            safe_b = line[2:].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+            story.append(Paragraph(f"• {safe_b}", body_style))
         else:
             safe = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             story.append(Paragraph(safe, body_style))
@@ -49,7 +51,6 @@ def export_pdf(content, title):
 
 def export_docx(content, title):
     from docx import Document
-    from docx.shared import Pt
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
     doc = Document()

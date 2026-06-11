@@ -20,19 +20,30 @@ def _call_llm(system_prompt, user_message, max_tokens=2048):
         raise GenerationError("GROQ_API_KEY is not set.")
 
     client = Groq(api_key=GROQ_API_KEY)
-    try:
-        response = client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
-            max_tokens=max_tokens,
-            temperature=0.7,
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        raise GenerationError(f"LLM call failed: {e}")
+    last_error = None
+
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model=LLM_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message},
+                ],
+                max_tokens=max_tokens,
+                temperature=0.7,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            last_error = str(e)
+            if "429" in str(e) or "rate" in str(e).lower():
+                import time
+                wait = 2 ** attempt
+                time.sleep(wait)
+                continue
+            raise GenerationError(f"LLM call failed: {e}")
+
+    raise GenerationError(f"LLM failed after 3 attempts: {last_error}")
 
 
 def _truncate_transcript(transcript, max_chars=12000):
